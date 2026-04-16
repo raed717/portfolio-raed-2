@@ -1,0 +1,83 @@
+{
+  "projects": [
+    {
+      "title": "SmarTown 3D GIS",
+      "description": "Web GIS platform for 2D and 3D map studies, spatial analytics, and asset intelligence.",
+      "technologies": ["Angular", "NestJS", "PostGIS", "GeoServer"],
+      "image": "/images/smartown/cp.png",
+      "github": "#",
+      "detailsUrl": "smartown.html",
+      "github_available": false,
+      "live_available": false,
+      "details_available": false
+    },
+    {
+      "title": "Iron Log",
+      "description": "Workout tracking application focused on progress monitoring, consistency, and clean data-driven feedback.",
+      "technologies": ["React", "Vite", "Supabase"],
+      "image": "/images/ironlog.png",
+      "github": "https://github.com/raed717/iron-log-94-main",
+      "live": "https://iron-log-ruddy.vercel.app/",
+      "github_available": true,
+      "live_available": true
+    },
+    {
+      "title": "Mining Maps",
+      "description": "Advanced portfolio of interactive maps and spatial analytics for mining operations, asset management, and environmental monitoring.",
+      "technologies": ["Next.js", "Supabase"],
+      "image": "/images/miningmaps.png",
+      "github": "https://github.com/raed717/iron-log-94-main",
+      "live": "https://miningmaps.vercel.app/",
+      "github_available": false,
+      "live_available": true
+    },
+    {
+      "title": "Albania Booking",
+      "description": "Booking platform for hotels, cars, and stays in Albania, currently evolving toward a richer travel workflow.",
+      "technologies": ["React", "Vite", "Supabase", "Stripe"],
+      "image": "/images/Albania.png",
+      "github": "https://github.com/raed717/iron-log-94-main",
+      "live": "https://bookinal.com/",
+      "live_available": true
+    },
+    {
+      "title": "HR Assistant",
+      "description": "AI-assisted HR system for analyzing candidate profiles and interview performance with faster decision support.",
+      "technologies": [
+        "Angular",
+        "Node.js",
+        "MongoDB",
+        "Python",
+        "Flask",
+        "OpenAi",
+        "OpenCv",
+        "AssemblyAi"
+      ],
+      "image": "/images/HR2.png",
+      "github": "#",
+      "live": "https://drive.google.com/file/d/15kMv9-dVafyeSacB4qJ7fSd2EiHoJvE8/view?usp=drive_link",
+      "github_available": false,
+      "live_available": true
+    },
+    {
+      "title": "Job search engine",
+      "description": "Job discovery engine with recommendation logic for certificates, skills, and learning roadmaps.",
+      "technologies": ["Flask", "PydanticAi", "AiAgents"],
+      "image": "/images/Job_search_engine.png",
+      "github": "https://github.com/Keensight-AI-Building-Blocks/Meeting_Analayzer",
+      "live": "#",
+      "github_available": true,
+      "live_available": false
+    },
+    {
+      "title": "Space Vape",
+      "description": "E-commerce storefront designed for a vape brand with a high-contrast product-focused experience.",
+      "technologies": ["Angular"],
+      "image": "/images/space_vape.png",
+      "github": "#",
+      "live": "#",
+      "github_available": false,
+      "live_available": false
+    }
+  ]
+}
