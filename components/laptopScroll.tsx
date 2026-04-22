@@ -2,52 +2,74 @@
 
 import NextImage from "next/image";
 import {
+  AnimatePresence,
   motion,
   useMotionValueEvent,
   useScroll,
-  useTransform,
 } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const FRAME_COUNT = 192;
+import {
+  FRAME_COUNT,
+  LAST_FRAME_SOURCE,
+  getSequencePreloadSnapshot,
+  preloadSequenceFrames,
+  subscribeToSequencePreloadProgress,
+} from "@/components/sequence-preload";
 const FOG_COLOR = "transparent";
 
-const FRAME_SOURCES = Array.from({ length: FRAME_COUNT }, (_, index) => {
-  const frame = String(index + 1).padStart(5, "0");
-  return `/laptop%20Sequences/${frame}.png`;
-});
+const QUOTES = [
+  {
+    title: '"Every interface is a promise."',
+    body:
+      "Before the logic, there is the interaction. A seamless surface waiting to be engaged, where design and intent meet.",
+  },
+  {
+    title: '"Beyond the glass, the system breathes."',
+    body:
+      "True engineering isn't just about the polished exterior-it's orchestrating the chaos beneath. It is the architecture of the unseen layers.",
+  },
+  {
+    title: '"Architecture in motion."',
+    body:
+      "Where elegant constraints meet raw execution. Building robust, scalable systems that endure the weight of reality.",
+  },
+] as const;
 
-const LAST_FRAME_SOURCE = FRAME_SOURCES[FRAME_COUNT - 1];
+function getQuoteIndex(progress: number) {
+  if (progress < 0.4) {
+    return 0;
+  }
+
+  if (progress < 0.72) {
+    return 1;
+  }
+
+  return 2;
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
 export default function LaptopScroll() {
+  const preloadSnapshot = getSequencePreloadSnapshot();
   const sectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imagesRef = useRef<Array<HTMLImageElement | null>>([]);
+  const imagesRef = useRef<Array<HTMLImageElement | null>>(preloadSnapshot?.images ?? []);
   const currentFrameRef = useRef(-1);
   const pendingFrameRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
   const viewportRef = useRef({ width: 0, height: 0 });
-  const [loadedCount, setLoadedCount] = useState(0);
-  const [isReady, setIsReady] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(preloadSnapshot?.loadedCount ?? 0);
+  const [isReady, setIsReady] = useState(Boolean(preloadSnapshot));
+  const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
 
   const loadProgress = loadedCount / FRAME_COUNT;
-
-  const q1Opacity = useTransform(scrollYProgress, [0, 0.15, 0.25, 0.3], [0, 1, 1, 0]);
-  const q1Y = useTransform(scrollYProgress, [0, 0.15], [40, 0]);
-
-  const q2Opacity = useTransform(scrollYProgress, [0.3, 0.45, 0.55, 0.6], [0, 1, 1, 0]);
-  const q2Y = useTransform(scrollYProgress, [0.3, 0.45], [40, 0]);
-
-  const q3Opacity = useTransform(scrollYProgress, [0.6, 0.75, 0.85, 0.9], [0, 1, 1, 0]);
-  const q3Y = useTransform(scrollYProgress, [0.6, 0.75], [40, 0]);
 
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
@@ -145,49 +167,29 @@ export default function LaptopScroll() {
   }, [drawFrame]);
 
   useEffect(() => {
-    let cancelled = false;
-    let completed = 0;
+    let mounted = true;
 
-    imagesRef.current = new Array(FRAME_COUNT).fill(null);
+    const unsubscribe = subscribeToSequencePreloadProgress((count) => {
+      if (mounted) {
+        setLoadedCount(count);
+      }
+    });
 
-    FRAME_SOURCES.forEach((source, index) => {
-      const image = new Image();
-      image.decoding = "async";
+    preloadSequenceFrames().then((result) => {
+      if (!mounted) {
+        return;
+      }
 
-      const finalize = (didLoad: boolean) => {
-        if (cancelled) {
-          return;
-        }
-
-        imagesRef.current[index] = didLoad ? image : null;
-        completed += 1;
-        setLoadedCount(completed);
-
-        if (index === 0 && didLoad) {
-          pendingFrameRef.current = 0;
-          resizeCanvas();
-        }
-
-        if (completed === FRAME_COUNT) {
-          setIsReady(true);
-        }
-      };
-
-      image.onload = () => {
-        if (typeof image.decode === "function") {
-          image.decode().catch(() => undefined).finally(() => finalize(true));
-          return;
-        }
-
-        finalize(true);
-      };
-
-      image.onerror = () => finalize(false);
-      image.src = source;
+      imagesRef.current = result.images;
+      pendingFrameRef.current = 0;
+      setLoadedCount(result.loadedCount);
+      setIsReady(true);
+      resizeCanvas();
     });
 
     return () => {
-      cancelled = true;
+      mounted = false;
+      unsubscribe();
 
       if (animationFrameRef.current !== null) {
         window.cancelAnimationFrame(animationFrameRef.current);
@@ -225,6 +227,8 @@ export default function LaptopScroll() {
   }, [isReady, resizeCanvas, scrollYProgress]);
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setActiveQuoteIndex(getQuoteIndex(latest));
+
     if (!isReady) {
       return;
     }
@@ -271,47 +275,25 @@ export default function LaptopScroll() {
       <div className="sticky top-0 z-10 h-[100svh] overflow-hidden">
         <canvas ref={canvasRef} className="h-[100svh] w-full" />
 
-        <motion.div
-          style={{ opacity: q1Opacity, y: q1Y }}
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
-        >
-          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
-            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
-              "Every interface is a promise."
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
-              Before the logic, there is the interaction. A seamless surface waiting to be engaged, where design and intent meet.
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: q2Opacity, y: q2Y }}
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
-        >
-          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
-            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
-              "Beyond the glass, the system breathes."
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
-              True engineering isn't just about the polished exterior—it's orchestrating the chaos beneath. It is the architecture of the unseen layers.
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: q3Opacity, y: q3Y }}
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
-        >
-          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
-            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
-              "Architecture in motion."
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
-              Where elegant constraints meet raw execution. Building robust, scalable systems that endure the weight of reality.
-            </p>
-          </div>
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={QUOTES[activeQuoteIndex].title}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
+          >
+            <div className="max-w-3xl rounded-[30px] border border-white/10 bg-black/50 px-8 py-10 sm:px-12 sm:py-12 backdrop-blur-sm">
+              <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
+                {QUOTES[activeQuoteIndex].title}
+              </p>
+              <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
+                {QUOTES[activeQuoteIndex].body}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
         {!isReady && (
           <div className="absolute inset-0 z-30 grid place-items-center">

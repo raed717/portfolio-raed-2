@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import PortfolioPage, {
+import PortfolioBoot from "@/components/portfolio-boot";
+import {
   type Certification,
   type EducationItem,
   type ProfileData,
@@ -32,7 +33,7 @@ export default async function Home() {
   ]);
 
   return (
-    <PortfolioPage
+    <PortfolioBoot
       profile={profile}
       projects={projectsPayload.projects}
       education={educationPayload.education}
