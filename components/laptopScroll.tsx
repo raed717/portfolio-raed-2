@@ -2,8 +2,10 @@
 
 import NextImage from "next/image";
 import {
+  motion,
   useMotionValueEvent,
   useScroll,
+  useTransform,
 } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -37,6 +39,15 @@ export default function LaptopScroll() {
   });
 
   const loadProgress = loadedCount / FRAME_COUNT;
+
+  const q1Opacity = useTransform(scrollYProgress, [0, 0.15, 0.25, 0.3], [0, 1, 1, 0]);
+  const q1Y = useTransform(scrollYProgress, [0, 0.15], [40, 0]);
+
+  const q2Opacity = useTransform(scrollYProgress, [0.3, 0.45, 0.55, 0.6], [0, 1, 1, 0]);
+  const q2Y = useTransform(scrollYProgress, [0.3, 0.45], [40, 0]);
+
+  const q3Opacity = useTransform(scrollYProgress, [0.6, 0.75, 0.85, 0.9], [0, 1, 1, 0]);
+  const q3Y = useTransform(scrollYProgress, [0.6, 0.75], [40, 0]);
 
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
@@ -224,7 +235,7 @@ export default function LaptopScroll() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[280vh] w-full"
+      className="relative h-[350vh] w-full"
       aria-label="WpDev laptop scroll sequence"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -259,6 +270,48 @@ export default function LaptopScroll() {
 
       <div className="sticky top-0 z-10 h-[100svh] overflow-hidden">
         <canvas ref={canvasRef} className="h-[100svh] w-full" />
+
+        <motion.div
+          style={{ opacity: q1Opacity, y: q1Y }}
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
+        >
+          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
+            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
+              "Every interface is a promise."
+            </p>
+            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
+              Before the logic, there is the interaction. A seamless surface waiting to be engaged, where design and intent meet.
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          style={{ opacity: q2Opacity, y: q2Y }}
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
+        >
+          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
+            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
+              "Beyond the glass, the system breathes."
+            </p>
+            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
+              True engineering isn't just about the polished exterior—it's orchestrating the chaos beneath. It is the architecture of the unseen layers.
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          style={{ opacity: q3Opacity, y: q3Y }}
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center"
+        >
+          <div className="max-w-3xl rounded-3xl border border-white/10 bg-black/40 px-8 py-10 backdrop-blur-md sm:px-12 sm:py-12">
+            <p className="display-face text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-white text-balance">
+              "Architecture in motion."
+            </p>
+            <p className="mx-auto mt-5 max-w-2xl text-balance text-base text-[var(--muted)] sm:text-lg sm:leading-8">
+              Where elegant constraints meet raw execution. Building robust, scalable systems that endure the weight of reality.
+            </p>
+          </div>
+        </motion.div>
 
         {!isReady && (
           <div className="absolute inset-0 z-30 grid place-items-center">
