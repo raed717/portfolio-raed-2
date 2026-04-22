@@ -8,7 +8,7 @@
     "github": "https://github.com/raed717",
     "avatar": "/images/me.png",
     "tagline": "I design and ship full-stack systems where architecture, interface motion, and developer discipline work like one instrument.",
-    "summary": "From Web GIS platforms and AI-assisted recruitment tools to dashboards, automated quality systems, and data-heavy products, I build software that feels fast, legible, and ready to scale.",
+    "summary": "From Web GIS platforms and AI-assisted recruitment tools to dashboards, automated quality systems, VPS deployments, and data-heavy products, I build software that feels fast, legible, observable, and ready to scale.",
     "availability": "Open to software engineering, architecture, QA automation, and AI-integrated product work."
   },
   "heroMetrics": [
@@ -58,7 +58,9 @@
         "PostgreSQL",
         "PostGIS",
         "MongoDB",
+        "VPS deployment",
         "Docker",
+        "Server monitoring",
         "Kubernetes",
         "GeoServer"
       ]
@@ -82,7 +84,7 @@
       "location": "Tunis, Tunisia",
       "period": "Apr 2025 - Present",
       "summary": "Built a full-stack Web GIS platform with Angular and NestJS for spatial visualization, asset management, and map-heavy analysis workflows.",
-      "impact": "Improved performance, maintainability, and scalability through clean architecture, API versioning, and optimized spatial data delivery.",
+      "impact": "Improved performance, maintainability, and scalability through clean architecture, API versioning, optimized spatial data delivery, and production deployment monitoring.",
       "tools": [
         "Angular",
         "NestJS",
@@ -90,12 +92,15 @@
         "PostGIS",
         "GeoServer",
         "Leaflet",
-        "MongoDB"
+        "MongoDB",
+        "Docker",
+        "VPS"
       ],
       "highlights": [
         "Designed a PostGIS schema optimized for fast spatial queries and geometry operations.",
         "Configured GeoServer to publish WMS and WFS services for efficient map layer delivery.",
         "Integrated Leaflet with custom controls, real-time editing, and dynamic spatial rendering.",
+        "Deployed applications to VPS environments with Docker and monitored both server health and application behavior in production.",
         "Refined the overall system with cleaner contracts and more reliable data-fetching flows."
       ]
     },

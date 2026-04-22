@@ -40,7 +40,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
       </body>
     </html>

@@ -16,6 +16,7 @@
   --shadow-card: 0 18px 54px rgba(0, 0, 0, 0.36);
   --pointer-x: 50%;
   --pointer-y: 24%;
+  --fog-background: transparent;
 }
 
 @theme inline {
@@ -58,7 +59,9 @@ a {
   text-decoration: none;
 }
 
+canvas,
 img {
+  display: block;
   max-width: 100%;
   height: auto;
 }
@@ -148,6 +151,10 @@ img {
   letter-spacing: 0.34em;
 }
 
+.sequence-spinner {
+  animation: spin 1s linear infinite;
+}
+
 @keyframes sweep {
   0% {
     transform: translateY(-100%);
@@ -194,6 +201,12 @@ img {
   }
   100% {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

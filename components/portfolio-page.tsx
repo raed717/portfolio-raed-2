@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
+import LaptopScroll from "@/components/laptopScroll";
+
 export type Project = {
   title: string;
   description: string;
@@ -88,14 +90,15 @@ type PortfolioPageProps = {
   certifications: Certification[];
 };
 
-const SECTION_IDS = ["hero", "experience", "projects", "education", "contact"];
+const SECTION_IDS = ["hero", "sequence", "experience", "projects", "education", "contact"];
 
 const NAV_ITEMS = [
-  { id: "hero", label: "Intro", index: "00" },
-  { id: "experience", label: "Experience", index: "01" },
-  { id: "projects", label: "Projects", index: "02" },
-  { id: "education", label: "Education", index: "03" },
-  { id: "contact", label: "Contact", index: "04" },
+  { id: "hero", mobileLabel: "Intro", index: "00" },
+  { id: "sequence", mobileLabel: "Reel", index: "01" },
+  { id: "experience", mobileLabel: "Work", index: "02" },
+  { id: "projects", mobileLabel: "Builds", index: "03" },
+  { id: "education", mobileLabel: "Study", index: "04" },
+  { id: "contact", mobileLabel: "Reach", index: "05" },
 ];
 
 const PROJECT_LAYOUTS = [
@@ -170,9 +173,11 @@ function SectionHeading({
 
 function MetricCard({ value, label }: HeroMetric) {
   return (
-    <div className="cinematic-panel soft-border rounded-[26px] px-5 py-4 transition-transform duration-300 hover:-translate-y-1">
-      <p className="display-face text-4xl font-semibold tracking-[-0.04em] text-white">{value}</p>
-      <p className="mono-face mt-2 text-[0.72rem] uppercase tracking-[0.28em] text-[var(--muted)]">{label}</p>
+    <div className="cinematic-panel soft-border rounded-[26px] px-4 py-4 transition-transform duration-300 hover:-translate-y-1 sm:px-5">
+      <p className="display-face text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">{value}</p>
+      <p className="mono-face mt-2 text-[0.64rem] uppercase tracking-[0.24em] text-[var(--muted)] sm:text-[0.72rem] sm:tracking-[0.28em]">
+        {label}
+      </p>
     </div>
   );
 }
@@ -335,9 +340,12 @@ export default function PortfolioPage({
   }, []);
 
   return (
-    <div className="relative overflow-x-hidden">
+    <div className="relative overflow-x-clip">
       <div className="pointer-events-none fixed inset-0 z-0 ambient-grid opacity-60" />
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-20 h-24 bg-[linear-gradient(180deg,rgba(6,6,6,0.82),rgba(6,6,6,0))]" />
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-24 bg-[linear-gradient(180deg,rgba(6,6,6,0.82),rgba(6,6,6,0))] transition-opacity duration-500"
+        style={{ opacity: activeSection === "sequence" ? 0 : 1 }}
+      />
 
       <aside className="fixed left-6 top-1/2 z-30 hidden -translate-y-1/2 xl:flex xl:flex-col xl:gap-4">
         <div className="cinematic-panel soft-border flex w-20 flex-col items-center gap-4 rounded-[28px] px-4 py-5">
@@ -352,96 +360,54 @@ export default function PortfolioPage({
           </p>
         </div>
 
-        <nav aria-label="Section navigation" className="cinematic-panel soft-border rounded-[28px] p-3">
-          <ul className="space-y-2">
-            {NAV_ITEMS.map((item) => {
-              const active = activeSection === item.id;
-
-              return (
-                <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    className={`flex min-w-[176px] items-center justify-between rounded-full px-4 py-3 transition-all duration-300 ${
-                      active
-                        ? "bg-[var(--accent)] text-black shadow-[0_10px_30px_rgba(30,215,96,0.24)]"
-                        : "bg-transparent text-[var(--muted)] hover:bg-white/6 hover:text-white"
-                    }`}
-                  >
-                    <span className="mono-face text-[0.72rem] uppercase tracking-[0.22em]">{item.index}</span>
-                    <span className="text-sm font-semibold uppercase tracking-[0.16em]">{item.label}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </aside>
-
-      <nav
-        aria-label="Mobile section navigation"
-        className="fixed inset-x-4 bottom-4 z-30 xl:hidden"
-      >
-        <div className="cinematic-panel soft-border flex items-center justify-between gap-2 rounded-full px-3 py-2">
+        <nav className="cinematic-panel soft-border flex w-20 flex-col gap-2 rounded-[28px] px-3 py-4">
           {NAV_ITEMS.map((item) => {
-            const active = activeSection === item.id;
+            const isActive = activeSection === item.id;
 
             return (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={`rounded-full px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] transition-all duration-300 ${
-                  active ? "bg-[var(--accent)] text-black" : "text-[var(--muted)]"
+                className={`rounded-[18px] px-2 py-2 text-center transition-colors duration-300 ${
+                  isActive ? "bg-white text-black" : "bg-white/0 text-white/55 hover:bg-white/6 hover:text-white"
                 }`}
               >
-                {item.label}
+                <span className="mono-face block text-[0.64rem] uppercase tracking-[0.22em]">{item.index}</span>
+                <span className="mt-1 block text-[0.64rem] uppercase tracking-[0.18em]">{item.mobileLabel}</span>
               </a>
             );
           })}
-        </div>
-      </nav>
+        </nav>
+      </aside>
 
-      <main className="relative z-10 pb-28">
-        <section id="hero" className="section-anchor relative min-h-[180vh]">
-          <div className="sticky top-0 flex min-h-screen items-center">
-            <div className="mx-auto grid w-full max-w-[1520px] gap-10 px-4 pb-[4.5rem] pt-28 sm:px-6 lg:grid-cols-[1.04fr_0.96fr] lg:px-20 xl:px-28">
+      <main className="relative z-10 pb-32 sm:pb-28">
+        <section id="hero" className="section-anchor relative lg:min-h-[180vh]">
+          <div className="flex min-h-screen items-start lg:sticky lg:top-0 lg:items-center">
+            <div className="mx-auto grid w-full max-w-[1520px] grid-cols-1 gap-8 px-4 pb-24 pt-24 sm:px-6 sm:pb-[4.5rem] sm:pt-28 lg:grid-cols-[1.04fr_0.96fr] lg:gap-10 lg:px-20 xl:px-28">
               <div
                 className="flex flex-col justify-center"
                 style={{ transform: `translate3d(0, ${scrollRatio * -110}px, 0)` }}
               >
-                <div className="inline-flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/4 px-4 py-2 backdrop-blur-sm">
+                <div className="inline-flex w-fit max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/4 px-4 py-2 backdrop-blur-sm">
                   <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_20px_rgba(30,215,96,0.72)]" />
-                  <span className="mono-face text-[0.72rem] uppercase tracking-[0.28em] text-[var(--muted)]">
+                  <span className="mono-face text-[0.62rem] uppercase tracking-[0.22em] text-[var(--muted)] sm:text-[0.72rem] sm:tracking-[0.28em]">
                     Software architect engineer / Tunisia / available now
                   </span>
                 </div>
 
-                <h1 className="display-face mt-8 max-w-5xl text-[clamp(3.7rem,10vw,8.8rem)] font-semibold leading-[0.86] tracking-[-0.07em] text-white text-balance">
+                <h1 className="display-face mt-8 max-w-[8ch] text-[clamp(3rem,13vw,4.85rem)] font-semibold leading-[0.9] tracking-[-0.07em] text-white text-balance sm:max-w-[10ch] sm:text-[clamp(4.2rem,10vw,6.5rem)] lg:max-w-5xl lg:text-[clamp(5.5rem,8vw,8.8rem)] lg:leading-[0.86]">
                   Architecture with the pulse of a live release.
                 </h1>
 
-                <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)] sm:text-xl">
+                <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-xl sm:leading-8">
                   {profile.person.tagline}
                 </p>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">
                   {profile.person.summary}
                 </p>
 
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <a
-                    href="#projects"
-                    className="rounded-full bg-[var(--accent)] px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-black transition-transform duration-300 hover:-translate-y-1"
-                  >
-                    View projects
-                  </a>
-                  <a
-                    href="#contact"
-                    className="rounded-full border border-white/14 bg-white/4 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-white transition-colors duration-300 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  >
-                    Start a conversation
-                  </a>
-                </div>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-10 grid grid-cols-2 gap-4 xl:grid-cols-4">
                   {profile.heroMetrics.map((metric) => (
                     <MetricCard key={metric.label} {...metric} />
                   ))}
@@ -455,7 +421,7 @@ export default function PortfolioPage({
                 >
                   <div className="cinematic-panel soft-border relative overflow-hidden rounded-[36px] px-5 pb-6 pt-5 sm:px-7 sm:pb-7 sm:pt-6">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,215,96,0.18),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0))]" />
-                    <div className="relative z-10 flex items-center justify-between gap-4">
+                    <div className="relative z-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                       <div>
                         <p className="mono-face text-[0.72rem] uppercase tracking-[0.32em] text-[var(--muted)]">
                           Now playing
@@ -469,7 +435,7 @@ export default function PortfolioPage({
                       </div>
                     </div>
 
-                    <div className="relative mt-6 grid gap-5 lg:grid-cols-[0.62fr_0.38fr]">
+                      <div className="relative mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[0.62fr_0.38fr]">
                       <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.16))] p-4 sm:p-5">
                         <div className="scan-line absolute inset-0" />
 
@@ -493,8 +459,8 @@ export default function PortfolioPage({
                           </div>
                         ))}
 
-                        <div className="relative mx-auto flex min-h-[430px] max-w-[420px] items-end justify-center">
-                          <div className="accent-ring relative h-[440px] w-[320px] overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),#121212] shadow-[0_35px_90px_rgba(0,0,0,0.55)] sm:w-[340px]">
+                        <div className="relative mx-auto flex min-h-[360px] max-w-[420px] items-end justify-center sm:min-h-[430px]">
+                          <div className="accent-ring relative h-[380px] w-[272px] overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),#121212] shadow-[0_35px_90px_rgba(0,0,0,0.55)] sm:h-[440px] sm:w-[340px]">
                             <Image
                               src={profile.person.avatar}
                               alt={`${profile.person.name} avatar placeholder`}
@@ -580,11 +546,15 @@ export default function PortfolioPage({
           </div>
         </section>
 
-        <section id="experience" className="section-anchor py-20 lg:py-28">
-          <div className="mx-auto grid max-w-[1520px] gap-10 px-4 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:px-20 xl:px-28">
+        <section id="sequence">
+          <LaptopScroll />
+        </section>
+
+        <section id="experience" className="section-anchor pt-20 lg:pt-24">
+          <div className="mx-auto grid max-w-[1520px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:px-20 xl:px-28">
             <div className="lg:sticky lg:top-24 lg:self-start">
               <SectionHeading
-                index="01"
+                index="02"
                 eyebrow="Career arc"
                 title="From dashboards to AI-assisted systems and map-heavy platforms."
                 description="Each role sharpens a different frequency: product delivery, spatial systems, quality engineering, and interfaces built to survive real usage."
@@ -679,13 +649,13 @@ export default function PortfolioPage({
         <section id="projects" className="section-anchor py-20 lg:py-28">
           <div className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-20 xl:px-28">
             <SectionHeading
-              index="02"
+              index="03"
               eyebrow="Selected work"
               title="Projects staged like headline releases, with the interface carrying the atmosphere."
               description="The UI stays dark and focused. The project imagery carries the color. Each card acts like a case-study poster with direct links when the build is public."
             />
 
-            <div className="mt-12 grid auto-rows-[minmax(320px,1fr)] gap-5 lg:grid-cols-12">
+            <div className="mt-12 grid grid-cols-1 auto-rows-[minmax(320px,1fr)] gap-5 lg:grid-cols-12">
               {projects.map((project, index) => (
                 <ProjectCard
                   key={project.title}
@@ -699,10 +669,10 @@ export default function PortfolioPage({
         </section>
 
         <section id="education" className="section-anchor py-20 lg:py-28">
-          <div className="mx-auto grid max-w-[1520px] gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-20 xl:px-28">
+          <div className="mx-auto grid max-w-[1520px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-20 xl:px-28">
             <div>
               <SectionHeading
-                index="03"
+                index="04"
                 eyebrow="Formation"
                 title="Engineering fundamentals, certifications, and a habit of learning in public."
                 description="The foundation is software engineering, but the portfolio also reflects QA depth, AI exploration, and a strong appetite for production-focused tooling."
@@ -827,10 +797,10 @@ export default function PortfolioPage({
           <div className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-20 xl:px-28">
             <div className="cinematic-panel soft-border relative overflow-hidden rounded-[34px] px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(30,215,96,0.18),transparent_28%),linear-gradient(120deg,rgba(255,255,255,0.03),transparent_46%)]" />
-              <div className="relative z-10 grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+              <div className="relative z-10 grid grid-cols-1 gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
                 <div>
                   <p className="mono-face text-[0.72rem] uppercase tracking-[0.34em] text-[var(--muted)]">
-                    04 / Closing track
+                    05 / Closing track
                   </p>
                   <h2 className="display-face mt-5 max-w-4xl text-[clamp(2.8rem,6vw,5.6rem)] font-semibold leading-[0.9] tracking-[-0.05em] text-white text-balance">
                     Ready to tune the next system, product surface, or platform release.
