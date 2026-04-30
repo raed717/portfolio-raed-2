@@ -5,14 +5,14 @@
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://127.0.0.1:3000
 - Network:       http://127.0.0.1:3000
-✓ Ready in 494ms
+✓ Ready in 540ms
 ⨯ Another next dev server is already running.
 
 - Local:        http://localhost:3000
-- PID:          9324
+- PID:          10384
 - Dir:          C:\Users\wolow\Desktop\demo_projects\portfolio-raed-2
 - Log:          .next\dev\logs\next-development.log
 
-Run taskkill /PID 9324 /F to stop it.
+Run taskkill /PID 10384 /F to stop it.
 [?25h
  ELIFECYCLE  Command failed with exit code 1.

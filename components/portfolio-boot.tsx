@@ -9,11 +9,6 @@ import PortfolioPage, {
   type ProfileData,
   type Project,
 } from "@/components/portfolio-page";
-import {
-  FRAME_COUNT,
-  preloadSequenceFrames,
-  subscribeToSequencePreloadProgress,
-} from "@/components/sequence-preload";
 
 type PortfolioBootProps = {
   profile: ProfileData;
@@ -25,33 +20,21 @@ type PortfolioBootProps = {
 export default function PortfolioBoot(props: PortfolioBootProps) {
   const [isReady, setIsReady] = useState(false);
   const [hasLaunched, setHasLaunched] = useState(false);
-  const [loadedCount, setLoadedCount] = useState(0);
 
   useEffect(() => {
-    let mounted = true;
-
-    const unsubscribe = subscribeToSequencePreloadProgress((count) => {
-      if (mounted) {
-        setLoadedCount(count);
-      }
-    });
-
-    preloadSequenceFrames().then(() => {
-      if (mounted) {
-        setIsReady(true);
-      }
-    });
+    const timer = window.setTimeout(() => {
+      setIsReady(true);
+    }, 3200);
 
     return () => {
-      mounted = false;
-      unsubscribe();
+      window.clearTimeout(timer);
     };
   }, []);
 
   if (!isReady || !hasLaunched) {
     return (
       <AppLoadingScreen
-        progress={(loadedCount / FRAME_COUNT) * 100}
+        progress={isReady ? 100 : null}
         isComplete={isReady}
         onLaunch={isReady ? () => setHasLaunched(true) : undefined}
       />

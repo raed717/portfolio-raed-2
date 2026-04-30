@@ -14,7 +14,7 @@ import {
   LAST_FRAME_SOURCE,
   getSequencePreloadSnapshot,
   preloadSequenceFrames,
-  subscribeToSequencePreloadProgress,
+  subscribeToSequencePreload,
 } from "@/components/sequence-preload";
 const FOG_COLOR = "transparent";
 
@@ -52,6 +52,28 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function findClosestLoadedFrameIndex(targetIndex: number, images: Array<HTMLImageElement | null>) {
+  if (images[targetIndex]) {
+    return targetIndex;
+  }
+
+  for (let distance = 1; distance < FRAME_COUNT; distance += 1) {
+    const previousIndex = targetIndex - distance;
+
+    if (previousIndex >= 0 && images[previousIndex]) {
+      return previousIndex;
+    }
+
+    const nextIndex = targetIndex + distance;
+
+    if (nextIndex < FRAME_COUNT && images[nextIndex]) {
+      return nextIndex;
+    }
+  }
+
+  return -1;
+}
+
 export default function LaptopScroll() {
   const preloadSnapshot = getSequencePreloadSnapshot();
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -62,7 +84,7 @@ export default function LaptopScroll() {
   const animationFrameRef = useRef<number | null>(null);
   const viewportRef = useRef({ width: 0, height: 0 });
   const [loadedCount, setLoadedCount] = useState(preloadSnapshot?.loadedCount ?? 0);
-  const [isReady, setIsReady] = useState(Boolean(preloadSnapshot));
+  const [isReady, setIsReady] = useState(preloadSnapshot?.hasInitialFrames ?? false);
   const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -73,7 +95,13 @@ export default function LaptopScroll() {
 
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
-    const image = imagesRef.current[frameIndex];
+    const loadedFrameIndex = findClosestLoadedFrameIndex(frameIndex, imagesRef.current);
+
+    if (loadedFrameIndex === -1) {
+      return;
+    }
+
+    const image = imagesRef.current[loadedFrameIndex];
 
     if (!canvas || !image) {
       return;
@@ -121,7 +149,7 @@ export default function LaptopScroll() {
     const y = (height - drawHeight) / 2;
 
     context.drawImage(image, x, y, drawWidth, drawHeight);
-    currentFrameRef.current = frameIndex;
+    currentFrameRef.current = loadedFrameIndex;
   }, []);
 
   const requestDraw = useCallback(
@@ -169,23 +197,20 @@ export default function LaptopScroll() {
   useEffect(() => {
     let mounted = true;
 
-    const unsubscribe = subscribeToSequencePreloadProgress((count) => {
+    const unsubscribe = subscribeToSequencePreload((snapshot) => {
       if (mounted) {
-        setLoadedCount(count);
+        imagesRef.current = snapshot.images;
+        setLoadedCount(snapshot.loadedCount);
+
+        if (snapshot.hasInitialFrames) {
+          setIsReady(true);
+          requestDraw(pendingFrameRef.current);
+        }
       }
     });
 
-    preloadSequenceFrames().then((result) => {
-      if (!mounted) {
-        return;
-      }
-
-      imagesRef.current = result.images;
-      pendingFrameRef.current = 0;
-      setLoadedCount(result.loadedCount);
-      setIsReady(true);
-      resizeCanvas();
-    });
+    preloadSequenceFrames();
+    resizeCanvas();
 
     return () => {
       mounted = false;
@@ -195,7 +220,7 @@ export default function LaptopScroll() {
         window.cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [resizeCanvas]);
+  }, [requestDraw, resizeCanvas]);
 
   useEffect(() => {
     resizeCanvas();

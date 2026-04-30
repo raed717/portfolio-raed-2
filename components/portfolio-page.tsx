@@ -507,8 +507,8 @@ export default function PortfolioPage({
                             <p className="pl-4 text-[var(--accent)]">
                               {`role: "${profile.person.role}",`}
                             </p>
-                            <p className="pl-4">{`focus: ["architecture", "frontend", "AI"],`}</p>
-                            <p className="pl-4">{`status: "available",`}</p>
+                            <p className="pl-4">{`focus: ["architecture", "frontend", "Agentic AI"],`}</p>
+                            <p className="pl-4">{`status: "Open to new opportunities",`}</p>
                             <p className="pl-4">{`location: "${profile.person.location}"`}</p>
                             <p>{"}"}</p>
                           </div>

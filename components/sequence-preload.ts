@@ -1,4 +1,7 @@
 export const FRAME_COUNT = 192;
+const FIRST_PASS_SIZE = 3;
+const FIRST_PASS_GAP = 3;
+const LOAD_CONCURRENCY = 3;
 
 export const FRAME_SOURCES = Array.from({ length: FRAME_COUNT }, (_, index) => {
   const frame = String(index + 1).padStart(5, "0");
@@ -7,84 +10,138 @@ export const FRAME_SOURCES = Array.from({ length: FRAME_COUNT }, (_, index) => {
 
 export const LAST_FRAME_SOURCE = FRAME_SOURCES[FRAME_COUNT - 1];
 
-type SequencePreloadResult = {
+export type SequencePreloadSnapshot = {
   images: Array<HTMLImageElement | null>;
   loadedCount: number;
+  isStarted: boolean;
+  hasInitialFrames: boolean;
+  isComplete: boolean;
 };
 
-let preloadPromise: Promise<SequencePreloadResult> | null = null;
-let preloadResult: SequencePreloadResult | null = null;
-let loadedCountSnapshot = 0;
-const progressListeners = new Set<(count: number) => void>();
+const images = new Array<HTMLImageElement | null>(FRAME_COUNT).fill(null);
+const listeners = new Set<(snapshot: SequencePreloadSnapshot) => void>();
 
-function notifyProgress(count: number) {
-  loadedCountSnapshot = count;
+const firstPassOrder = buildPassOrder(0);
+const secondPassOrder = buildPassOrder(FIRST_PASS_SIZE);
+const loadOrder = [...firstPassOrder, ...secondPassOrder];
 
-  for (const listener of progressListeners) {
-    listener(count);
+let loadedCount = 0;
+let isStarted = false;
+let isComplete = false;
+let completionPromise: Promise<SequencePreloadSnapshot> | null = null;
+
+function buildPassOrder(startOffset: number) {
+  const order: number[] = [];
+
+  for (let blockStart = startOffset; blockStart < FRAME_COUNT; blockStart += FIRST_PASS_SIZE + FIRST_PASS_GAP) {
+    for (let offset = 0; offset < FIRST_PASS_SIZE; offset += 1) {
+      const frameIndex = blockStart + offset;
+
+      if (frameIndex < FRAME_COUNT) {
+        order.push(frameIndex);
+      }
+    }
+  }
+
+  return order;
+}
+
+function getSnapshot(): SequencePreloadSnapshot {
+  return {
+    images,
+    loadedCount,
+    isStarted,
+    hasInitialFrames: firstPassOrder.slice(0, FIRST_PASS_SIZE).every((index) => images[index]),
+    isComplete,
+  };
+}
+
+function notifyListeners() {
+  const snapshot = getSnapshot();
+
+  for (const listener of listeners) {
+    listener(snapshot);
   }
 }
 
 export function getSequencePreloadSnapshot() {
-  return preloadResult;
+  return getSnapshot();
 }
 
-export function subscribeToSequencePreloadProgress(listener: (count: number) => void) {
-  progressListeners.add(listener);
-  listener(loadedCountSnapshot);
+export function subscribeToSequencePreload(listener: (snapshot: SequencePreloadSnapshot) => void) {
+  listeners.add(listener);
+  listener(getSnapshot());
 
   return () => {
-    progressListeners.delete(listener);
+    listeners.delete(listener);
   };
 }
 
 export function preloadSequenceFrames() {
   if (typeof window === "undefined") {
-    return Promise.resolve({ images: [], loadedCount: 0 });
+    return Promise.resolve(getSnapshot());
   }
 
-  if (preloadResult) {
-    return Promise.resolve(preloadResult);
+  if (completionPromise) {
+    return completionPromise;
   }
 
-  if (preloadPromise) {
-    return preloadPromise;
-  }
+  isStarted = true;
+  notifyListeners();
 
-  notifyProgress(0);
+  completionPromise = new Promise<SequencePreloadSnapshot>((resolve) => {
+    let nextOrderIndex = 0;
+    let activeLoads = 0;
 
-  preloadPromise = new Promise<SequencePreloadResult>((resolve) => {
-    const images = new Array<HTMLImageElement | null>(FRAME_COUNT).fill(null);
-    let completed = 0;
+    const schedule = () => {
+      if (isComplete) {
+        resolve(getSnapshot());
+        return;
+      }
 
-    FRAME_SOURCES.forEach((source, index) => {
-      const image = new Image();
-      image.decoding = "async";
+      while (activeLoads < LOAD_CONCURRENCY && nextOrderIndex < loadOrder.length) {
+        const frameIndex = loadOrder[nextOrderIndex];
+        nextOrderIndex += 1;
+        activeLoads += 1;
 
-      const finalize = (didLoad: boolean) => {
-        images[index] = didLoad ? image : null;
-        completed += 1;
-        notifyProgress(completed);
+        const image = new Image();
+        image.decoding = "async";
 
-        if (completed === FRAME_COUNT) {
-          preloadResult = { images, loadedCount: completed };
-          resolve(preloadResult);
-        }
-      };
+        const finalize = (didLoad: boolean) => {
+          images[frameIndex] = didLoad ? image : null;
+          loadedCount += 1;
 
-      image.onload = () => {
-        if (typeof image.decode === "function") {
-          image.decode().catch(() => undefined).finally(() => finalize(true));
-          return;
-        }
+          if (loadedCount === FRAME_COUNT) {
+            isComplete = true;
+          }
 
-        finalize(true);
-      };
+          notifyListeners();
+          activeLoads -= 1;
 
-      image.onerror = () => finalize(false);
-      image.src = source;
-    });
+          if (isComplete && activeLoads === 0) {
+            resolve(getSnapshot());
+            return;
+          }
+
+          schedule();
+        };
+
+        image.onload = () => {
+          if (typeof image.decode === "function") {
+            image.decode().catch(() => undefined).finally(() => finalize(true));
+            return;
+          }
+
+          finalize(true);
+        };
+
+        image.onerror = () => finalize(false);
+        image.src = FRAME_SOURCES[frameIndex];
+      }
+    };
+
+    schedule();
   });
 
-  return preloadPromise;
+  return completionPromise;
 }
