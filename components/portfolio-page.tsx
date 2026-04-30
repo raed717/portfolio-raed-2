@@ -93,8 +93,8 @@ type PortfolioPageProps = {
 const SECTION_IDS = ["sequence", "hero", "experience", "projects", "education", "contact"];
 
 const NAV_ITEMS = [
-  { id: "sequence", mobileLabel: "Reel", index: "00" },
-  { id: "hero", mobileLabel: "Intro", index: "01" },
+  { id: "hero", mobileLabel: "Intro", index: "00" },
+  { id: "sequence", mobileLabel: "Reel", index: "01" },
   { id: "experience", mobileLabel: "Work", index: "02" },
   { id: "projects", mobileLabel: "Builds", index: "03" },
   { id: "education", mobileLabel: "Study", index: "04" },
@@ -381,9 +381,7 @@ export default function PortfolioPage({
       </aside>
 
       <main className="relative z-10 pb-32 sm:pb-28">
-        <section id="sequence" className="section-anchor">
-          <LaptopScroll />
-        </section>
+
 
         <section id="hero" className="section-anchor relative lg:min-h-[180vh]">
           <div className="flex min-h-screen items-start lg:sticky lg:top-0 lg:items-center">
@@ -549,7 +547,9 @@ export default function PortfolioPage({
             </div>
           </div>
         </section>
-
+        <section id="sequence" className="section-anchor">
+          <LaptopScroll />
+        </section>
         <section id="experience" className="section-anchor pt-20 lg:pt-24">
           <div className="mx-auto grid max-w-[1520px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:px-20 xl:px-28">
             <div className="lg:sticky lg:top-24 lg:self-start">
